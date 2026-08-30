@@ -3,7 +3,7 @@ if ('serviceWorker' in navigator) {
     navigator.serviceWorker.getRegistrations().then(function(registrations) {
         for (let registration of registrations) {
             registration.unregister();
-            console.log('Service Worker desregistrado');
+            console.log('✅ Service Worker desregistrado');
         }
     });
 }
@@ -33,7 +33,8 @@ const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => Array.from(document.querySelectorAll(sel));
 
 function toast(msg, type = "ok") {
-    const box = $("#toastBox");
+    const box = document.getElementById("toastBox");
+    if (!box) return;
     const el = document.createElement("div");
     el.className = `toast ${type}`;
     el.textContent = msg;
@@ -181,27 +182,80 @@ if (!isFirebaseConfigured) {
     }
 }
 
-// ===== LOGIN POR URL =====
+// ============================================================
+// ===== LOGIN POR URL (ativa admin, mas PEDE LOGIN) =====
+// ============================================================
+
 const currentUrl = window.location.href;
 console.log("📍 URL atual:", currentUrl);
 
 if (currentUrl.includes('adm') || currentUrl.includes('?adm') || currentUrl.includes('&adm')) {
-    console.log("✅ Modo admin detectado!");
+    console.log("🔑 Modo admin solicitado via URL");
+    
+    // Adiciona a classe admin-mode para mostrar o badge (parcial)
+    document.body.classList.add('admin-mode');
+    
+    // Mostra o badge (mas sem o botão "Painel Admin" ainda)
+    const badge = document.getElementById('adminBadge');
+    if (badge) {
+        badge.style.display = 'flex';
+        // Esconde o botão "Painel Admin" até fazer login
+        const panelBtn = document.getElementById('openPanelBtn');
+        if (panelBtn) panelBtn.style.display = 'none';
+    }
+    
+    // Abre o modal de login automaticamente
     setTimeout(() => {
-        isAdmin = true;
-        document.body.classList.add('admin-mode');
-        
-        // Força o badge a aparecer
-        const badge = document.getElementById('adminBadge');
-        if (badge) badge.style.display = 'flex';
-        
-        if (dataLayer._authCb) dataLayer._authCb(true);
-        toast('🛠️ Modo administrador ativado!', 'ok');
-        renderAll();
-        console.log("✅ Admin ativado com sucesso!");
-    }, 100);
+        openModal('loginModal');
+        toast('🔑 Faça login para acessar o painel admin', 'ok');
+    }, 500);
 } else {
     console.log("❌ Modo admin NÃO detectado. Adicione ?adm na URL.");
+}
+
+// ============================================================
+// ===== LOGIN FORM =====
+// ============================================================
+
+const loginForm = document.getElementById('loginForm');
+if (loginForm) {
+    loginForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const msg = document.getElementById('loginMsg');
+        if (msg) msg.className = 'form-msg';
+        
+        const email = document.getElementById('loginEmail');
+        const password = document.getElementById('loginPassword');
+        
+        if (!email || !password) return;
+        
+        try {
+            await dataLayer.login(email.value, password.value);
+            closeModal('loginModal');
+            
+            // Ativa o admin completamente
+            isAdmin = true;
+            document.body.classList.add('admin-mode');
+            
+            // Mostra o botão "Painel Admin"
+            const panelBtn = document.getElementById('openPanelBtn');
+            if (panelBtn) panelBtn.style.display = 'flex';
+            
+            // Mostra o badge completo
+            const badge = document.getElementById('adminBadge');
+            if (badge) badge.style.display = 'flex';
+            
+            renderAll();
+            toast('🛠️ Painel admin disponível!', 'ok');
+            
+            loginForm.reset();
+        } catch (err) {
+            if (msg) {
+                msg.textContent = err.message || 'Erro ao fazer login. Verifique os dados.';
+                msg.classList.add('show', 'error');
+            }
+        }
+    });
 }
 
 function getCategories() {
@@ -476,7 +530,7 @@ document.querySelectorAll(".modal-overlay").forEach(ov => {
     });
 });
 
-// ===== LOGIN =====
+// ===== LOGIN HINT =====
 const loginHint = document.getElementById("loginHint");
 if (loginHint) {
     loginHint.textContent = isFirebaseConfigured
@@ -484,15 +538,29 @@ if (loginHint) {
         : "Modo demonstração: informe qualquer e-mail e a senha demo (admin123).";
 }
 
+// ============================================================
 // ===== LOGOUT =====
+// ============================================================
+
 const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
-    logoutBtn.addEventListener("click", async () => {
+    logoutBtn.addEventListener("click", async function() {
         await dataLayer.logout();
+        
+        // Remove o admin
+        isAdmin = false;
+        document.body.classList.remove('admin-mode');
+        
+        // Esconde o badge
+        const badge = document.getElementById('adminBadge');
+        if (badge) badge.style.display = 'none';
+        
+        // Remove o ?adm da URL
         let url = window.location.href;
         url = url.replace('adm', '').replace('?adm', '').replace('&adm', '');
         window.history.replaceState({}, '', url);
-        toast("Sessão encerrada.", "ok");
+        
+        toast('Sessão encerrada.', 'ok');
     });
 }
 
@@ -506,7 +574,6 @@ dataLayer.onAuth((authed) => {
 // ===== PAINEL ADMIN =====
 const openPanelBtn = document.getElementById("openPanelBtn");
 if (openPanelBtn) {
-    // Suporte para clique e toque (celular)
     openPanelBtn.addEventListener("click", function(e) {
         e.preventDefault();
         e.stopPropagation();
@@ -575,6 +642,7 @@ if (productForm) {
             }
             bindImageInput();
             renderCategorySelect();
+            renderAdminList();
         } catch (err) {
             if (msg) {
                 msg.textContent = "Erro ao salvar: " + (err.message || err);
