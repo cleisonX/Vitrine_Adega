@@ -1,3 +1,13 @@
+// ===== REMOVER SERVICE WORKERS =====
+if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.getRegistrations().then(function(registrations) {
+        for (let registration of registrations) {
+            registration.unregister();
+            console.log('Service Worker desregistrado');
+        }
+    });
+}
+
 // ------------------- CONFIGURAÇÕES QUE VOCÊ PODE EDITAR -------------------
 const WHATSAPP_NUMBER = "5551998559124"; // Seu número
 
@@ -156,30 +166,42 @@ if (isFirebaseConfigured) {
 
 // ===== DEMO BANNER ATUALIZADO =====
 if (!isFirebaseConfigured) {
-    $("#demoBannerWrap").innerHTML = `
-        <div class="demo-banner">
-            <span>⚠️</span>
-            <div>
-                <b>Modo demonstração ativo.</b> Os produtos estão salvos apenas neste navegador.
-                Para publicar, preencha o FIREBASE_CONFIG no código.
-                <br>
-                <small>Para gerenciar produtos, adicione <code>?adm</code> ao final da URL.</small>
-            </div>
-        </div>`;
+    const bannerWrap = document.getElementById("demoBannerWrap");
+    if (bannerWrap) {
+        bannerWrap.innerHTML = `
+            <div class="demo-banner">
+                <span>⚠️</span>
+                <div>
+                    <b>Modo demonstração ativo.</b> Os produtos estão salvos apenas neste navegador.
+                    Para publicar, preencha o FIREBASE_CONFIG no código.
+                    <br>
+                    <small>Para gerenciar produtos, adicione <code>?adm</code> ao final da URL.</small>
+                </div>
+            </div>`;
+    }
 }
 
 // ===== LOGIN POR URL =====
-// Detecta se a URL contém "adm" (ex: /adm ou ?adm)
 const currentUrl = window.location.href;
+console.log("📍 URL atual:", currentUrl);
+
 if (currentUrl.includes('adm') || currentUrl.includes('?adm') || currentUrl.includes('&adm')) {
-    // Ativa modo admin automaticamente
+    console.log("✅ Modo admin detectado!");
     setTimeout(() => {
         isAdmin = true;
         document.body.classList.add('admin-mode');
-        dataLayer._authCb && dataLayer._authCb(true);
+        
+        // Força o badge a aparecer
+        const badge = document.getElementById('adminBadge');
+        if (badge) badge.style.display = 'flex';
+        
+        if (dataLayer._authCb) dataLayer._authCb(true);
         toast('🛠️ Modo administrador ativado!', 'ok');
         renderAll();
+        console.log("✅ Admin ativado com sucesso!");
     }, 100);
+} else {
+    console.log("❌ Modo admin NÃO detectado. Adicione ?adm na URL.");
 }
 
 function getCategories() {
@@ -188,7 +210,8 @@ function getCategories() {
 }
 
 function renderCategories() {
-    const list = $("#categoryList");
+    const list = document.getElementById("categoryList");
+    if (!list) return;
     const cats = getCategories();
     list.innerHTML = cats.map(cat => {
         const count = cat === "Todos" ? PRODUCTS.length : PRODUCTS.filter(p => p.category === cat).length;
@@ -198,9 +221,8 @@ function renderCategories() {
             </button>
         </li>`;
     }).join("");
-    $$(".cat-btn").forEach(btn => btn.addEventListener("click", () => {
+    document.querySelectorAll(".cat-btn").forEach(btn => btn.addEventListener("click", () => {
         activeCategory = btn.dataset.cat;
-        // Fecha o sidebar no mobile após clicar na categoria
         if (window.innerWidth <= 1023) {
             closeSidebar();
         }
@@ -222,11 +244,16 @@ function waLink(p) {
 }
 
 function renderGrid() {
-    const grid = $("#productGrid");
+    const grid = document.getElementById("productGrid");
+    if (!grid) return;
     const list = filteredProducts();
-    $("#gridTitle").textContent = activeCategory === "Todos" ? "Todos os produtos" : activeCategory;
-    $("#gridCount").textContent = `${list.length} produto${list.length === 1 ? "" : "s"}`;
-    $("#emptyState").hidden = list.length > 0;
+    const title = document.getElementById("gridTitle");
+    const count = document.getElementById("gridCount");
+    const empty = document.getElementById("emptyState");
+    
+    if (title) title.textContent = activeCategory === "Todos" ? "Todos os produtos" : activeCategory;
+    if (count) count.textContent = `${list.length} produto${list.length === 1 ? "" : "s"}`;
+    if (empty) empty.hidden = list.length > 0;
 
     grid.innerHTML = list.map(p => {
         const safeName = escapeHtml(p.name);
@@ -253,14 +280,18 @@ function renderGrid() {
         `;
     }).join("");
 
-    $$("[data-zoom]").forEach(el => el.addEventListener("click", () => {
+    document.querySelectorAll("[data-zoom]").forEach(el => el.addEventListener("click", () => {
         const src = el.dataset.zoom;
         if (!src) return;
-        $("#zoomImg").src = src;
-        $("#zoomImg").alt = el.dataset.name || "Produto";
-        $("#zoomOverlay").classList.add("open");
+        const zoomImg = document.getElementById("zoomImg");
+        const zoomOverlay = document.getElementById("zoomOverlay");
+        if (zoomImg && zoomOverlay) {
+            zoomImg.src = src;
+            zoomImg.alt = el.dataset.name || "Produto";
+            zoomOverlay.classList.add("open");
+        }
     }));
-    $$("[data-del]").forEach(btn => btn.addEventListener("click", async (e) => {
+    document.querySelectorAll("[data-del]").forEach(btn => btn.addEventListener("click", async (e) => {
         e.stopPropagation();
         if (!confirm("Excluir este produto do catálogo?")) return;
         await dataLayer.deleteProduct(btn.dataset.del);
@@ -277,8 +308,10 @@ function placeholderImg() {
 }
 
 function renderAdminList() {
-    const box = $("#adminProductList");
-    $("#adminListCount").textContent = `Produtos cadastrados (${PRODUCTS.length})`;
+    const box = document.getElementById("adminProductList");
+    const count = document.getElementById("adminListCount");
+    if (!box) return;
+    if (count) count.textContent = `Produtos cadastrados (${PRODUCTS.length})`;
     box.innerHTML = PRODUCTS.map(p => {
         const safeName = escapeHtml(p.name);
         const safeCategory = escapeHtml(p.category || "Geral");
@@ -294,7 +327,7 @@ function renderAdminList() {
         `;
     }).join("") || `<p class="hint">Nenhum produto cadastrado ainda.</p>`;
 
-    $$("[data-del2]").forEach(btn => btn.addEventListener("click", async () => {
+    document.querySelectorAll("[data-del2]").forEach(btn => btn.addEventListener("click", async () => {
         if (!confirm("Excluir este produto do catálogo?")) return;
         await dataLayer.deleteProduct(btn.dataset.del2);
         toast("Produto excluído.", "ok");
@@ -302,7 +335,8 @@ function renderAdminList() {
 }
 
 function renderCategorySelect() {
-    const sel = $("#productCategorySelect");
+    const sel = document.getElementById("productCategorySelect");
+    if (!sel) return;
     const cats = Array.from(new Set(PRODUCTS.map(p => p.category).filter(Boolean))).sort();
     sel.innerHTML = cats.map(c => `<option value="${escapeHtml(c)}">${escapeHtml(c)}</option>`).join("") + `<option value="__new__">+ Nova categoria</option>`;
     sel.value = cats.length ? cats[0] : "__new__";
@@ -310,8 +344,11 @@ function renderCategorySelect() {
 }
 
 function toggleNewCategoryField() {
-    const isNew = $("#productCategorySelect").value === "__new__";
-    $("#newCategoryField").style.display = isNew ? "block" : "none";
+    const sel = document.getElementById("productCategorySelect");
+    const field = document.getElementById("newCategoryField");
+    if (!sel || !field) return;
+    const isNew = sel.value === "__new__";
+    field.style.display = isNew ? "block" : "none";
 }
 
 function renderAll() {
@@ -328,25 +365,31 @@ dataLayer.subscribe((list) => {
 // ===== SIDEBAR COM TOGGLE =====
 function openSidebar() {
     document.body.classList.add("sidebar-open");
-    document.getElementById("sidebar").classList.add("open");
+    const sidebar = document.getElementById("sidebar");
+    if (sidebar) sidebar.classList.add("open");
 }
 
 function closeSidebar() {
     document.body.classList.remove("sidebar-open");
-    document.getElementById("sidebar").classList.remove("open");
+    const sidebar = document.getElementById("sidebar");
+    if (sidebar) sidebar.classList.remove("open");
 }
 
-// Toggle do menu hambúrguer: abre e fecha ao clicar no mesmo botão
+// Toggle do menu hambúrguer
 const menuToggleBtn = document.getElementById("menuToggle");
 const sidebarOverlayEl = document.getElementById("sidebarOverlay");
 
 if (menuToggleBtn) {
-    menuToggleBtn.addEventListener("click", function() {
+    menuToggleBtn.addEventListener("click", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
         const sidebar = document.getElementById("sidebar");
-        if (sidebar.classList.contains("open")) {
-            closeSidebar();
-        } else {
-            openSidebar();
+        if (sidebar) {
+            if (sidebar.classList.contains("open")) {
+                closeSidebar();
+            } else {
+                openSidebar();
+            }
         }
     });
 }
@@ -364,8 +407,8 @@ document.addEventListener("click", function(e) {
 });
 
 // Sincroniza as duas buscas (mobile e desktop)
-const searchInputMobile = $("#searchInput");
-const searchInputDesktop = $("#searchInputDesktop");
+const searchInputMobile = document.getElementById("searchInput");
+const searchInputDesktop = document.getElementById("searchInputDesktop");
 
 if (searchInputMobile) {
     searchInputMobile.addEventListener("input", (e) => {
@@ -383,78 +426,169 @@ if (searchInputDesktop) {
     });
 }
 
-$("#zoomClose").addEventListener("click", () => $("#zoomOverlay").classList.remove("open"));
-$("#zoomOverlay").addEventListener("click", (e) => { if (e.target.id === "zoomOverlay") $("#zoomOverlay").classList.remove("open"); });
+// ===== ZOOM =====
+const zoomClose = document.getElementById("zoomClose");
+const zoomOverlay = document.getElementById("zoomOverlay");
+if (zoomClose) {
+    zoomClose.addEventListener("click", () => {
+        if (zoomOverlay) zoomOverlay.classList.remove("open");
+    });
+}
+if (zoomOverlay) {
+    zoomOverlay.addEventListener("click", (e) => {
+        if (e.target.id === "zoomOverlay") zoomOverlay.classList.remove("open");
+    });
+}
 
-function openModal(id) { $("#" + id).classList.add("open"); }
-function closeModal(id) { $("#" + id).classList.remove("open"); }
-$$("[data-close]").forEach(btn => btn.addEventListener("click", () => closeModal(btn.dataset.close)));
-$$(".modal-overlay").forEach(ov => ov.addEventListener("click", (e) => { if (e.target === ov) ov.classList.remove("open"); }));
+// ===== MODALS =====
+function openModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.classList.add("open");
+        modal.style.display = "flex";
+        document.body.style.overflow = "hidden";
+        console.log("✅ Modal aberto:", id);
+    } else {
+        console.log("❌ Modal não encontrado:", id);
+    }
+}
 
-$("#loginHint").textContent = isFirebaseConfigured
-    ? "Use o e-mail e senha do administrador cadastrado no Firebase Authentication."
-    : "Modo demonstração: informe qualquer e-mail e a senha demo (admin123).";
+function closeModal(id) {
+    const modal = document.getElementById(id);
+    if (modal) {
+        modal.classList.remove("open");
+        modal.style.display = "none";
+        document.body.style.overflow = "auto";
+    }
+}
 
-$("#logoutBtn").addEventListener("click", async () => {
-    await dataLayer.logout();
-    let url = window.location.href;
-    url = url.replace('adm', '').replace('?adm', '').replace('&adm', '');
-    window.history.replaceState({}, '', url);
-    toast("Sessão encerrada.", "ok");
+document.querySelectorAll("[data-close]").forEach(btn => {
+    btn.addEventListener("click", () => closeModal(btn.dataset.close));
 });
 
+document.querySelectorAll(".modal-overlay").forEach(ov => {
+    ov.addEventListener("click", (e) => {
+        if (e.target === ov) {
+            ov.classList.remove("open");
+            ov.style.display = "none";
+            document.body.style.overflow = "auto";
+        }
+    });
+});
+
+// ===== LOGIN =====
+const loginHint = document.getElementById("loginHint");
+if (loginHint) {
+    loginHint.textContent = isFirebaseConfigured
+        ? "Use o e-mail e senha do administrador cadastrado no Firebase Authentication."
+        : "Modo demonstração: informe qualquer e-mail e a senha demo (admin123).";
+}
+
+// ===== LOGOUT =====
+const logoutBtn = document.getElementById("logoutBtn");
+if (logoutBtn) {
+    logoutBtn.addEventListener("click", async () => {
+        await dataLayer.logout();
+        let url = window.location.href;
+        url = url.replace('adm', '').replace('?adm', '').replace('&adm', '');
+        window.history.replaceState({}, '', url);
+        toast("Sessão encerrada.", "ok");
+    });
+}
+
+// ===== AUTH =====
 dataLayer.onAuth((authed) => {
     isAdmin = authed;
     document.body.classList.toggle("admin-mode", isAdmin);
     if (isAdmin) renderAll();
 });
 
-$("#openPanelBtn").addEventListener("click", () => {
+// ===== PAINEL ADMIN =====
+const openPanelBtn = document.getElementById("openPanelBtn");
+if (openPanelBtn) {
+    // Suporte para clique e toque (celular)
+    openPanelBtn.addEventListener("click", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        abrirPainelAdmin();
+    });
+    openPanelBtn.addEventListener("touchstart", function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        abrirPainelAdmin();
+    });
+}
+
+function abrirPainelAdmin() {
+    console.log("🔓 Abrindo painel admin...");
     renderCategorySelect();
     renderAdminList();
     openModal("panelModal");
-});
+}
 
-$("#productCategorySelect").addEventListener("change", toggleNewCategoryField);
+// ===== PRODUCT FORM =====
+const productCategorySelect = document.getElementById("productCategorySelect");
+if (productCategorySelect) {
+    productCategorySelect.addEventListener("change", toggleNewCategoryField);
+}
 
-$("#productForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const msg = $("#productMsg");
-    msg.className = "form-msg";
+const productForm = document.getElementById("productForm");
+if (productForm) {
+    productForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const msg = document.getElementById("productMsg");
+        if (msg) msg.className = "form-msg";
 
-    const name = $("#productName").value.trim();
-    const price = parseFloat($("#productPrice").value);
-    let category = $("#productCategorySelect").value;
-    if (category === "__new__") category = $("#productCategoryNew").value.trim();
-    const description = $("#productDesc").value.trim();
+        const name = document.getElementById("productName");
+        const price = document.getElementById("productPrice");
+        const categorySelect = document.getElementById("productCategorySelect");
+        const categoryNew = document.getElementById("productCategoryNew");
+        const desc = document.getElementById("productDesc");
 
-    if (!name || !price || !category) {
-        msg.textContent = "Preencha nome, preço e categoria.";
-        msg.classList.add("show", "error");
-        return;
-    }
+        if (!name || !price || !categorySelect) return;
 
-    const btn = $("#saveProductBtn");
-    btn.disabled = true; btn.textContent = "Salvando...";
-    try {
-        await dataLayer.addProduct({ name, price, category, description }, pendingImageData);
-        toast("Produto salvo com sucesso!", "ok");
-        $("#productForm").reset();
-        pendingImageData = null;
-        $("#imgDrop").classList.remove("has-img");
-        $("#imgDrop").innerHTML = `<span id="imgDropText">Toque para escolher uma foto</span><input type="file" id="productImage" accept="image/*">`;
-        bindImageInput();
-        renderCategorySelect();
-    } catch (err) {
-        msg.textContent = "Erro ao salvar: " + (err.message || err);
-        msg.classList.add("show", "error");
-    } finally {
-        btn.disabled = false; btn.textContent = "Salvar produto";
-    }
-});
+        const nameValue = name.value.trim();
+        const priceValue = parseFloat(price.value);
+        let categoryValue = categorySelect.value;
+        if (categoryValue === "__new__" && categoryNew) categoryValue = categoryNew.value.trim();
+        const descriptionValue = desc ? desc.value.trim() : "";
 
+        if (!nameValue || !priceValue || !categoryValue) {
+            if (msg) {
+                msg.textContent = "Preencha nome, preço e categoria.";
+                msg.classList.add("show", "error");
+            }
+            return;
+        }
+
+        const btn = document.getElementById("saveProductBtn");
+        if (btn) { btn.disabled = true; btn.textContent = "Salvando..."; }
+        try {
+            await dataLayer.addProduct({ name: nameValue, price: priceValue, category: categoryValue, description: descriptionValue }, pendingImageData);
+            toast("Produto salvo com sucesso!", "ok");
+            if (productForm) productForm.reset();
+            pendingImageData = null;
+            const imgDrop = document.getElementById("imgDrop");
+            if (imgDrop) {
+                imgDrop.classList.remove("has-img");
+                imgDrop.innerHTML = `<span id="imgDropText">Toque para escolher uma foto</span><input type="file" id="productImage" accept="image/*">`;
+            }
+            bindImageInput();
+            renderCategorySelect();
+        } catch (err) {
+            if (msg) {
+                msg.textContent = "Erro ao salvar: " + (err.message || err);
+                msg.classList.add("show", "error");
+            }
+        } finally {
+            if (btn) { btn.disabled = false; btn.textContent = "Salvar produto"; }
+        }
+    });
+}
+
+// ===== IMAGE INPUT =====
 function bindImageInput() {
-    const input = $("#productImage");
+    const input = document.getElementById("productImage");
     if (input) {
         input.addEventListener("change", (e) => {
             const file = e.target.files[0];
@@ -462,8 +596,11 @@ function bindImageInput() {
             pendingImageData = file;
             const reader = new FileReader();
             reader.onload = (ev) => {
-                $("#imgDrop").classList.add("has-img");
-                $("#imgDrop").innerHTML = `<img src="${ev.target.result}" alt="Pré-visualização"><input type="file" id="productImage" accept="image/*">`;
+                const imgDrop = document.getElementById("imgDrop");
+                if (imgDrop) {
+                    imgDrop.classList.add("has-img");
+                    imgDrop.innerHTML = `<img src="${ev.target.result}" alt="Pré-visualização"><input type="file" id="productImage" accept="image/*">`;
+                }
                 bindImageInput();
             };
             reader.readAsDataURL(file);
@@ -471,3 +608,7 @@ function bindImageInput() {
     }
 }
 bindImageInput();
+
+console.log("🚀 Site carregado com sucesso!");
+console.log("📱 Modo admin:", isAdmin ? "ATIVADO" : "DESATIVADO");
+console.log("💡 Para ativar, adicione ?adm na URL");
