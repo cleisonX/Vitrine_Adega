@@ -7,7 +7,7 @@
     <title>Vitrine Adega e Tabacaria</title>
     <meta name="description"
         content="Catálogo online da Vitrine Adega e Tabacaria. Confira nossas bebidas e produtos e peça direto pelo WhatsApp.">
-    <link rel="icon" href="assets/logo.jpeg">
+    <link rel="icon" href="assets/logo.png">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link
@@ -21,6 +21,12 @@
     <!-- ===================== TOPBAR ===================== -->
     <header class="topbar">
         <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu de categorias"><span></span></button>
+        
+        <!-- TEXTO ANIMADO NO HEADER (só desktop) -->
+        <div class="header-text desktop-only">
+            <span class="marquee-text">Bem-vindo à Vitrine Adega e Tabacaria — Escolha o produto e peça pelo WhatsApp, retire no local ou receba na sua casa!</span>
+        </div>
+
         <div class="search-wrap mobile-search">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f7f1e6" stroke-width="2">
                 <circle cx="11" cy="11" r="7" />
@@ -28,11 +34,8 @@
             </svg>
             <input type="text" id="searchInput" placeholder="Buscar produto...">
         </div>
-        <div class="brand">
-            <img src="assets/logo.png" alt="Logo Vitrine Adega e Tabacaria">
-        </div>
+
         <div class="header-actions">
-            <button class="btn btn-outline" id="loginBtn">Administrador</button>
             <div id="adminBadge">
                 <button class="btn btn-solid btn-sm" id="openPanelBtn">Painel Admin</button>
                 <button class="btn btn-ghost btn-sm" id="logoutBtn">Sair</button>
@@ -56,11 +59,15 @@
     <div class="layout">
         <div class="sidebar-overlay" id="sidebarOverlay"></div>
         <aside class="sidebar" id="sidebar">
-            <h2>Categorias <button class="sidebar-close" id="sidebarClose" aria-label="Fechar">&times;</button></h2>
+            <!-- LOGO EM CIMA -->
+            <div class="sidebar-logo-wrap">
+                <img src="assets/logo.png" alt="Vitrine Adega" class="sidebar-logo" />
+            </div>
+            <!-- CATEGORIAS EMBAIXO -->
+            <h2>Categorias </h2>
             <ul id="categoryList"></ul>
             <div class="sidebar-footer">
                 <strong>Vitrine Adega e Tabacaria</strong>
-                Peça pelo WhatsApp e retire ou receba rapidinho. 🍻
             </div>
         </aside>
 

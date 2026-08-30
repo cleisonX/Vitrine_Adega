@@ -154,6 +154,7 @@ if (isFirebaseConfigured) {
     };
 }
 
+// ===== DEMO BANNER ATUALIZADO =====
 if (!isFirebaseConfigured) {
     $("#demoBannerWrap").innerHTML = `
         <div class="demo-banner">
@@ -161,8 +162,24 @@ if (!isFirebaseConfigured) {
             <div>
                 <b>Modo demonstração ativo.</b> Os produtos estão salvos apenas neste navegador.
                 Para publicar, preencha o FIREBASE_CONFIG no código.
+                <br>
+                <small>Para gerenciar produtos, adicione <code>?adm</code> ao final da URL.</small>
             </div>
         </div>`;
+}
+
+// ===== LOGIN POR URL =====
+// Detecta se a URL contém "adm" (ex: /adm ou ?adm)
+const currentUrl = window.location.href;
+if (currentUrl.includes('adm') || currentUrl.includes('?adm') || currentUrl.includes('&adm')) {
+    // Ativa modo admin automaticamente
+    setTimeout(() => {
+        isAdmin = true;
+        document.body.classList.add('admin-mode');
+        dataLayer._authCb && dataLayer._authCb(true);
+        toast('🛠️ Modo administrador ativado!', 'ok');
+        renderAll();
+    }, 100);
 }
 
 function getCategories() {
@@ -183,7 +200,10 @@ function renderCategories() {
     }).join("");
     $$(".cat-btn").forEach(btn => btn.addEventListener("click", () => {
         activeCategory = btn.dataset.cat;
-        closeSidebar();
+        // Fecha o sidebar no mobile após clicar na categoria
+        if (window.innerWidth <= 1023) {
+            closeSidebar();
+        }
         renderAll();
     }));
 }
@@ -305,27 +325,63 @@ dataLayer.subscribe((list) => {
     renderAll();
 });
 
-function openSidebar() { document.body.classList.add("sidebar-open"); $("#sidebar").classList.add("open"); }
-function closeSidebar() { document.body.classList.remove("sidebar-open"); $("#sidebar").classList.remove("open"); }
-$("#menuToggle").addEventListener("click", openSidebar);
-$("#sidebarClose").addEventListener("click", closeSidebar);
-$("#sidebarOverlay").addEventListener("click", closeSidebar);
+// ===== SIDEBAR COM TOGGLE =====
+function openSidebar() {
+    document.body.classList.add("sidebar-open");
+    document.getElementById("sidebar").classList.add("open");
+}
+
+function closeSidebar() {
+    document.body.classList.remove("sidebar-open");
+    document.getElementById("sidebar").classList.remove("open");
+}
+
+// Toggle do menu hambúrguer: abre e fecha ao clicar no mesmo botão
+const menuToggleBtn = document.getElementById("menuToggle");
+const sidebarOverlayEl = document.getElementById("sidebarOverlay");
+
+if (menuToggleBtn) {
+    menuToggleBtn.addEventListener("click", function() {
+        const sidebar = document.getElementById("sidebar");
+        if (sidebar.classList.contains("open")) {
+            closeSidebar();
+        } else {
+            openSidebar();
+        }
+    });
+}
+
+if (sidebarOverlayEl) {
+    sidebarOverlayEl.addEventListener("click", closeSidebar);
+}
+
+// Fecha sidebar ao clicar em uma categoria (mobile)
+document.addEventListener("click", function(e) {
+    const catBtn = e.target.closest(".cat-btn");
+    if (catBtn && window.innerWidth <= 1023) {
+        closeSidebar();
+    }
+});
 
 // Sincroniza as duas buscas (mobile e desktop)
 const searchInputMobile = $("#searchInput");
 const searchInputDesktop = $("#searchInputDesktop");
 
-searchInputMobile.addEventListener("input", (e) => {
-    searchTerm = e.target.value;
-    searchInputDesktop.value = e.target.value;
-    renderGrid();
-});
+if (searchInputMobile) {
+    searchInputMobile.addEventListener("input", (e) => {
+        searchTerm = e.target.value;
+        if (searchInputDesktop) searchInputDesktop.value = e.target.value;
+        renderGrid();
+    });
+}
 
-searchInputDesktop.addEventListener("input", (e) => {
-    searchTerm = e.target.value;
-    searchInputMobile.value = e.target.value;
-    renderGrid();
-});
+if (searchInputDesktop) {
+    searchInputDesktop.addEventListener("input", (e) => {
+        searchTerm = e.target.value;
+        if (searchInputMobile) searchInputMobile.value = e.target.value;
+        renderGrid();
+    });
+}
 
 $("#zoomClose").addEventListener("click", () => $("#zoomOverlay").classList.remove("open"));
 $("#zoomOverlay").addEventListener("click", (e) => { if (e.target.id === "zoomOverlay") $("#zoomOverlay").classList.remove("open"); });
@@ -339,25 +395,11 @@ $("#loginHint").textContent = isFirebaseConfigured
     ? "Use o e-mail e senha do administrador cadastrado no Firebase Authentication."
     : "Modo demonstração: informe qualquer e-mail e a senha demo (admin123).";
 
-$("#loginBtn").addEventListener("click", () => openModal("loginModal"));
-
-$("#loginForm").addEventListener("submit", async (e) => {
-    e.preventDefault();
-    const msg = $("#loginMsg");
-    msg.className = "form-msg";
-    try {
-        await dataLayer.login($("#loginEmail").value, $("#loginPassword").value);
-        closeModal("loginModal");
-        toast("Login realizado com sucesso!", "ok");
-        $("#loginForm").reset();
-    } catch (err) {
-        msg.textContent = err.message || "Não foi possível entrar. Verifique os dados.";
-        msg.classList.add("show", "error");
-    }
-});
-
 $("#logoutBtn").addEventListener("click", async () => {
     await dataLayer.logout();
+    let url = window.location.href;
+    url = url.replace('adm', '').replace('?adm', '').replace('&adm', '');
+    window.history.replaceState({}, '', url);
     toast("Sessão encerrada.", "ok");
 });
 
@@ -413,17 +455,19 @@ $("#productForm").addEventListener("submit", async (e) => {
 
 function bindImageInput() {
     const input = $("#productImage");
-    input.addEventListener("change", (e) => {
-        const file = e.target.files[0];
-        if (!file) return;
-        pendingImageData = file;
-        const reader = new FileReader();
-        reader.onload = (ev) => {
-            $("#imgDrop").classList.add("has-img");
-            $("#imgDrop").innerHTML = `<img src="${ev.target.result}" alt="Pré-visualização"><input type="file" id="productImage" accept="image/*">`;
-            bindImageInput();
-        };
-        reader.readAsDataURL(file);
-    });
+    if (input) {
+        input.addEventListener("change", (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            pendingImageData = file;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                $("#imgDrop").classList.add("has-img");
+                $("#imgDrop").innerHTML = `<img src="${ev.target.result}" alt="Pré-visualização"><input type="file" id="productImage" accept="image/*">`;
+                bindImageInput();
+            };
+            reader.readAsDataURL(file);
+        });
+    }
 }
 bindImageInput();
