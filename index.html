@@ -18,11 +18,10 @@
 
 <body>
 
-    <!-- ===================== TOPBAR ===================== -->
+    <!-- TOPBAR -->
     <header class="topbar">
         <button class="menu-toggle" id="menuToggle" aria-label="Abrir menu de categorias"><span></span></button>
         
-        <!-- TEXTO ANIMADO NO HEADER (só desktop) -->
         <div class="header-text desktop-only">
             <span class="marquee-text">Bem-vindo à Vitrine Adega e Tabacaria — Escolha o produto e peça pelo WhatsApp, retire no local ou receba na sua casa!</span>
         </div>
@@ -64,7 +63,7 @@
                 <img src="assets/logo.png" alt="Vitrine Adega" class="sidebar-logo" />
             </div>
             <!-- CATEGORIAS EMBAIXO -->
-            <h2>Categorias </h2>
+            <h2>Categorias</h2>
             <ul id="categoryList"></ul>
             <div class="sidebar-footer">
                 <strong>Vitrine Adega e Tabacaria</strong>
@@ -82,6 +81,69 @@
                 <p>Assim que o administrador cadastrar produtos, eles aparecem aqui.</p>
             </div>
         </main>
+    </div>
+
+    <!-- ===================== BOTÃO FLUTUANTE DO CARRINHO ===================== -->
+    <button id="cartFloat" class="cart-float" aria-label="Abrir carrinho">
+        <span class="cart-float-icon">🛒</span>
+        <span class="cart-float-badge" id="cartFloatBadge">0</span>
+    </button>
+
+    <!-- ===================== CARRINHO MODAL ===================== -->
+    <div class="modal-overlay" id="cartModal">
+        <div class="modal cart-modal">
+            <div class="modal-head">
+                <h3>🛒 Meu Carrinho</h3>
+                <button class="modal-close" data-close="cartModal">&times;</button>
+            </div>
+            <div id="cartItems" style="max-height:40vh;overflow-y:auto;margin-bottom:12px;">
+                <p style="color:var(--muted);text-align:center;padding:20px 0;">Seu carrinho está vazio.</p>
+            </div>
+            <div id="cartSummary" style="border-top:1px solid var(--card-border);padding-top:12px;display:none;">
+                <div style="display:flex;justify-content:space-between;font-size:16px;font-weight:600;margin-bottom:12px;">
+                    <span>Total:</span>
+                    <span id="cartTotal">R$ 0,00</span>
+                </div>
+                
+                <!-- TIPO DE ENTREGA -->
+                <div class="field">
+                    <label>Tipo de entrega</label>
+                    <select id="deliveryType" onchange="toggleDeliveryFields()">
+                        <option value="retirada">Retirar no local</option>
+                        <option value="tele">Tele-entrega</option>
+                    </select>
+                </div>
+                
+                <!-- ENDEREÇO (aparece se for tele) -->
+                <div class="field" id="addressField" style="display:none;">
+                    <label>Endereço de entrega</label>
+                    <input type="text" id="deliveryAddress" placeholder="Rua, número, bairro, complemento...">
+                </div>
+                
+                <!-- FORMA DE PAGAMENTO -->
+                <div class="field">
+                    <label>Forma de pagamento</label>
+                    <select id="paymentMethod" onchange="togglePaymentFields()">
+                        <option value="pix">Pix</option>
+                        <option value="credito">Cartão de Crédito</option>
+                        <option value="debito">Cartão de Débito</option>
+                        <option value="dinheiro">Dinheiro</option>
+                    </select>
+                </div>
+                
+                <!-- TROCO (aparece se for dinheiro) -->
+                <div class="field" id="changeField" style="display:none;">
+                    <label>Troco para quanto?</label>
+                    <input type="number" id="changeAmount" min="0" step="0.01" placeholder="Ex: 100,00">
+                    <p class="hint" style="margin-top:4px;">Deixe vazio se não precisar de troco</p>
+                </div>
+                
+                <button id="cartCheckout" class="btn btn-whatsapp" style="width:100%;justify-content:center;font-size:15px;padding:12px;">
+                    Finalizar Pedido no WhatsApp
+                </button>
+                <button id="cartClear" class="btn btn-ghost btn-sm" style="width:100%;margin-top:8px;">Esvaziar Carrinho</button>
+            </div>
+        </div>
     </div>
 
     <footer class="site-footer">

@@ -165,7 +165,7 @@ if (isFirebaseConfigured) {
     };
 }
 
-// ===== DEMO BANNER ATUALIZADO =====
+// ===== DEMO BANNER =====
 if (!isFirebaseConfigured) {
     const bannerWrap = document.getElementById("demoBannerWrap");
     if (bannerWrap) {
@@ -182,41 +182,26 @@ if (!isFirebaseConfigured) {
     }
 }
 
-// ============================================================
-// ===== LOGIN POR URL (ativa admin, mas PEDE LOGIN) =====
-// ============================================================
-
+// ===== LOGIN POR URL =====
 const currentUrl = window.location.href;
-console.log("📍 URL atual:", currentUrl);
 
 if (currentUrl.includes('adm') || currentUrl.includes('?adm') || currentUrl.includes('&adm')) {
-    console.log("🔑 Modo admin solicitado via URL");
-    
-    // Adiciona a classe admin-mode para mostrar o badge (parcial)
     document.body.classList.add('admin-mode');
     
-    // Mostra o badge (mas sem o botão "Painel Admin" ainda)
     const badge = document.getElementById('adminBadge');
     if (badge) {
         badge.style.display = 'flex';
-        // Esconde o botão "Painel Admin" até fazer login
         const panelBtn = document.getElementById('openPanelBtn');
         if (panelBtn) panelBtn.style.display = 'none';
     }
     
-    // Abre o modal de login automaticamente
     setTimeout(() => {
         openModal('loginModal');
-        toast('🔑 Faça login para acessar o painel admin', 'ok');
+        toast('Faça login para acessar o painel admin', 'ok');
     }, 500);
-} else {
-    console.log("❌ Modo admin NÃO detectado. Adicione ?adm na URL.");
 }
 
-// ============================================================
 // ===== LOGIN FORM =====
-// ============================================================
-
 const loginForm = document.getElementById('loginForm');
 if (loginForm) {
     loginForm.addEventListener('submit', async function(e) {
@@ -233,15 +218,12 @@ if (loginForm) {
             await dataLayer.login(email.value, password.value);
             closeModal('loginModal');
             
-            // Ativa o admin completamente
             isAdmin = true;
             document.body.classList.add('admin-mode');
             
-            // Mostra o botão "Painel Admin"
             const panelBtn = document.getElementById('openPanelBtn');
             if (panelBtn) panelBtn.style.display = 'flex';
             
-            // Mostra o badge completo
             const badge = document.getElementById('adminBadge');
             if (badge) badge.style.display = 'flex';
             
@@ -292,10 +274,258 @@ function filteredProducts() {
     });
 }
 
-function waLink(p) {
-    const msg = `Olá! Vi na Vitrine Adega e Tabacaria e tenho interesse em:\n*${p.name}*\nPreço: ${money(p.price)}\n\nPoderia me passar mais informações?`;
-    return `https://wa.me/${WHATSAPP_NUMBER}?text=${encodeURIComponent(msg)}`;
+// ============================================================
+// ===== CARRINHO DE COMPRAS =====
+// ============================================================
+
+let cart = [];
+const CART_STORAGE_KEY = 'vitrine_cart';
+
+function loadCart() {
+    try {
+        const saved = localStorage.getItem(CART_STORAGE_KEY);
+        cart = saved ? JSON.parse(saved) : [];
+    } catch {
+        cart = [];
+    }
+    updateCartUI();
 }
+
+function saveCart() {
+    localStorage.setItem(CART_STORAGE_KEY, JSON.stringify(cart));
+    updateCartUI();
+}
+
+function placeholderImg() {
+    return "data:image/svg+xml;utf8," + encodeURIComponent(`
+        <svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'>
+            <rect width='100%' height='100%' fill='#171412'/>
+            <text x='50%' y='50%' fill='#ff8a1e' font-size='20' font-family='sans-serif' text-anchor='middle' dy='.3em'>Sem foto</text>
+        </svg>`);
+}
+
+function renderCartModal() {
+    const container = document.getElementById('cartItems');
+    const summary = document.getElementById('cartSummary');
+    const totalEl = document.getElementById('cartTotal');
+    if (!container) return;
+    
+    if (cart.length === 0) {
+        container.innerHTML = `<p style="color:var(--muted);text-align:center;padding:20px 0;">🛒 Seu carrinho está vazio.</p>`;
+        if (summary) summary.style.display = 'none';
+        return;
+    }
+    
+    let total = 0;
+    container.innerHTML = cart.map(item => {
+        const subtotal = item.price * item.qty;
+        total += subtotal;
+        return `
+            <div class="cart-item">
+                <img src="${item.image}" alt="${escapeHtml(item.name)}" class="cart-item-img">
+                <div class="cart-item-info">
+                    <div class="cart-item-name">${escapeHtml(item.name)}</div>
+                    <div class="cart-item-price">${money(item.price)}</div>
+                </div>
+                <div class="cart-item-actions">
+                    <button onclick="window.removeFromCart('${item.id}')" title="Remover um">−</button>
+                    <span class="cart-item-qty">${item.qty}</span>
+                    <button onclick="window.addToCart('${item.id}', '${escapeHtml(item.name)}', ${item.price}, '${item.image}', true)" title="Adicionar mais">+</button>
+                    <button onclick="window.removeItemCompletely('${item.id}')" style="color:var(--danger);border-color:rgba(230,67,47,0.3);" title="Remover tudo">✕</button>
+                </div>
+            </div>
+        `;
+    }).join('');
+    
+    if (totalEl) totalEl.textContent = money(total);
+    if (summary) summary.style.display = 'block';
+    
+    // Garante que os campos de entrega/pagamento estão visíveis
+    toggleDeliveryFields();
+    togglePaymentFields();
+}
+
+// ===== FUNÇÕES DE TOGGLE PARA ENTREGA E PAGAMENTO =====
+function toggleDeliveryFields() {
+    const deliveryType = document.getElementById('deliveryType');
+    const addressField = document.getElementById('addressField');
+    if (deliveryType && addressField) {
+        addressField.style.display = deliveryType.value === 'tele' ? 'block' : 'none';
+    }
+}
+
+function togglePaymentFields() {
+    const paymentMethod = document.getElementById('paymentMethod');
+    const changeField = document.getElementById('changeField');
+    if (paymentMethod && changeField) {
+        changeField.style.display = paymentMethod.value === 'dinheiro' ? 'block' : 'none';
+    }
+}
+
+window.toggleDeliveryFields = toggleDeliveryFields;
+window.togglePaymentFields = togglePaymentFields;
+
+function checkoutCart() {
+    if (cart.length === 0) {
+        toast('🛒 Carrinho vazio!', 'error');
+        return;
+    }
+    
+    const deliveryType = document.getElementById('deliveryType');
+    const deliveryAddress = document.getElementById('deliveryAddress');
+    const paymentMethod = document.getElementById('paymentMethod');
+    const changeAmount = document.getElementById('changeAmount');
+    
+    if (!deliveryType || !paymentMethod) {
+        toast('Erro: campos de entrega/pagamento não encontrados!', 'error');
+        return;
+    }
+    
+    // Valida endereço se for tele-entrega
+    if (deliveryType.value === 'tele') {
+        if (!deliveryAddress || !deliveryAddress.value.trim()) {
+            toast('Digite o endereço de entrega!', 'error');
+            if (deliveryAddress) deliveryAddress.focus();
+            return;
+        }
+    }
+    
+    // Valida troco se for dinheiro
+    let changeMessage = '';
+    if (paymentMethod.value === 'dinheiro' && changeAmount && changeAmount.value) {
+        changeMessage = `Troco para: ${money(parseFloat(changeAmount.value))}`;
+    }
+    
+    let total = 0;
+    let message = 'Novo Pedido - Vitrine Adega e Tabacaria\n\n';
+    message += 'Itens do pedido:\n';
+    
+    cart.forEach((item, index) => {
+        const subtotal = item.price * item.qty;
+        total += subtotal;
+        message += `${index + 1}. ${item.name} - ${item.qty}x ${money(item.price)} = ${money(subtotal)}\n`;
+    });
+    
+    message += `\nTotal: ${money(total)}\n\n`;
+    
+    // Tipo de entrega
+    const deliveryLabel = deliveryType.value === 'tele' ? 'Tele-entrega' : 'Retirar no local';
+    message += `Entrega: ${deliveryLabel}\n`;
+    
+    if (deliveryType.value === 'tele') {
+        message += `Endereço: ${deliveryAddress.value.trim()}\n`;
+    }
+    
+    // Forma de pagamento
+    const paymentLabels = {
+        'pix': 'Pix',
+        'credito': 'Cartão de Crédito',
+        'debito': 'Cartão de Débito',
+        'dinheiro': 'Dinheiro'
+    };
+    const paymentLabel = paymentLabels[paymentMethod.value] || paymentMethod.value;
+    message += `Pagamento: ${paymentLabel}\n`;
+    
+    if (changeMessage) {
+        message += `${changeMessage}\n`;
+    }
+    
+    message += `\nObrigado!`;
+    
+    const encodedMsg = encodeURIComponent(message);
+    const url = `https://wa.me/${WHATSAPP_NUMBER}?text=${encodedMsg}`;
+    window.open(url, '_blank');
+    
+    setTimeout(() => {
+        cart = [];
+        saveCart();
+        renderCartModal();
+        closeModal('cartModal');
+        toast('✅ Pedido enviado! Carrinho esvaziado.', 'ok');
+    }, 1000);
+}
+
+function updateCartUI() {
+    const count = cart.reduce((sum, item) => sum + item.qty, 0);
+    const floatBadge = document.getElementById('cartFloatBadge');
+    if (floatBadge) {
+        floatBadge.textContent = count;
+        floatBadge.style.display = count > 0 ? 'flex' : 'none';
+    }
+}
+
+// ===== FUNÇÕES GLOBAIS DO CARRINHO =====
+window.addToCart = function(productId, productName, productPrice, productImage, fromModal = false) {
+    const existing = cart.find(item => item.id === productId);
+    if (existing) {
+        existing.qty += 1;
+    } else {
+        cart.push({
+            id: productId,
+            name: productName,
+            price: productPrice,
+            image: productImage || placeholderImg(),
+            qty: 1
+        });
+    }
+    saveCart();
+    
+    if (fromModal) {
+        renderCartModal();
+    } else {
+        toast(`✅ ${productName} adicionado ao carrinho!`, 'ok');
+    }
+};
+
+window.removeFromCart = function(productId) {
+    const existing = cart.find(item => item.id === productId);
+    if (existing) {
+        if (existing.qty > 1) {
+            existing.qty -= 1;
+        } else {
+            cart = cart.filter(item => item.id !== productId);
+        }
+    }
+    saveCart();
+    renderCartModal();
+};
+
+window.removeItemCompletely = function(productId) {
+    cart = cart.filter(item => item.id !== productId);
+    saveCart();
+    renderCartModal();
+};
+
+window.clearCart = function() {
+    if (cart.length === 0) return;
+    if (confirm('Esvaziar carrinho?')) {
+        cart = [];
+        saveCart();
+        toast('🛒 Carrinho esvaziado', 'ok');
+    }
+};
+
+window.renderCartModal = renderCartModal;
+window.checkoutCart = checkoutCart;
+window.closeModal = closeModal;
+
+// EVENTOS DO CARRINHO
+document.getElementById('cartFloat')?.addEventListener('click', function(e) {
+    e.preventDefault();
+    renderCartModal();
+    openModal('cartModal');
+});
+
+document.getElementById('cartCheckout')?.addEventListener('click', checkoutCart);
+
+document.getElementById('cartClear')?.addEventListener('click', function() {
+    clearCart();
+    renderCartModal();
+});
+
+// ============================================================
+// ===== RENDER GRID =====
+// ============================================================
 
 function renderGrid() {
     const grid = document.getElementById("productGrid");
@@ -313,11 +543,12 @@ function renderGrid() {
         const safeName = escapeHtml(p.name);
         const safeDesc = escapeHtml(p.description || "");
         const safeCategory = escapeHtml(p.category || "Geral");
+        const imageUrl = p.imageUrl || placeholderImg();
         return `
             <article class="card">
                 <button class="card-del" data-del="${p.id}" title="Excluir produto">🗑</button>
-                <div class="card-img-wrap" data-zoom="${p.imageUrl || ""}" data-name="${safeName}">
-                    <img src="${p.imageUrl || placeholderImg()}" alt="${safeName}" loading="lazy">
+                <div class="card-img-wrap" data-zoom="${imageUrl}" data-name="${safeName}">
+                    <img src="${imageUrl}" alt="${safeName}" loading="lazy">
                     <span class="card-zoom-icon">🔍</span>
                 </div>
                 <div class="card-body">
@@ -325,10 +556,9 @@ function renderGrid() {
                     <h3 class="card-name">${safeName}</h3>
                     ${safeDesc ? `<p class="card-desc">${safeDesc}</p>` : ""}
                     <p class="card-price">${money(p.price)}</p>
-                    <a class="btn btn-whatsapp" target="_blank" rel="noopener" href="${waLink(p)}">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="currentColor"><path d="M12.04 2C6.58 2 2.13 6.45 2.13 11.91c0 1.75.46 3.45 1.32 4.95L2 22l5.29-1.39a9.9 9.9 0 0 0 4.75 1.21h.01c5.46 0 9.9-4.45 9.9-9.91C21.96 6.45 17.5 2 12.04 2Zm0 18.02h-.01a8.1 8.1 0 0 1-4.13-1.13l-.3-.17-3.14.82.84-3.06-.19-.32a8.08 8.08 0 0 1-1.24-4.25c0-4.48 3.65-8.12 8.14-8.12 2.17 0 4.21.85 5.75 2.39a8.06 8.06 0 0 1 2.38 5.75c0 4.48-3.65 8.09-8.1 8.09Zm4.44-6.06c-.24-.12-1.43-.7-1.65-.79-.22-.08-.38-.12-.55.12-.16.24-.63.79-.77.95-.14.16-.28.18-.52.06-.24-.12-1.02-.38-1.94-1.2-.72-.64-1.2-1.43-1.35-1.67-.14-.24-.02-.37.1-.49.11-.11.24-.28.36-.42.12-.14.16-.24.24-.4.08-.16.04-.3-.02-.42-.06-.12-.55-1.32-.75-1.8-.2-.48-.4-.42-.55-.42-.14 0-.3-.02-.46-.02-.16 0-.42.06-.64.3-.22.24-.85.83-.85 2.02 0 1.19.87 2.34 1 2.5.12.16 1.71 2.61 4.14 3.66.58.25 1.03.4 1.38.51.58.18 1.11.16 1.53.1.47-.07 1.43-.58 1.63-1.15.2-.56.2-1.04.14-1.15-.06-.1-.22-.16-.46-.28Z"/></svg>
-                        Pedir no WhatsApp
-                    </a>
+                    <button class="btn-add-cart" onclick="window.addToCart('${p.id}', '${safeName}', ${p.price}, '${imageUrl}')">
+                        Adicionar ao Carrinho
+                    </button>
                 </div>
             </article>
         `;
@@ -351,14 +581,6 @@ function renderGrid() {
         await dataLayer.deleteProduct(btn.dataset.del);
         toast("Produto excluído.", "ok");
     }));
-}
-
-function placeholderImg() {
-    return "data:image/svg+xml;utf8," + encodeURIComponent(`
-        <svg xmlns='http://www.w3.org/2000/svg' width='400' height='400'>
-            <rect width='100%' height='100%' fill='#171412'/>
-            <text x='50%' y='50%' fill='#ff8a1e' font-size='20' font-family='sans-serif' text-anchor='middle' dy='.3em'>Sem foto</text>
-        </svg>`);
 }
 
 function renderAdminList() {
@@ -416,7 +638,7 @@ dataLayer.subscribe((list) => {
     renderAll();
 });
 
-// ===== SIDEBAR COM TOGGLE =====
+// ===== SIDEBAR =====
 function openSidebar() {
     document.body.classList.add("sidebar-open");
     const sidebar = document.getElementById("sidebar");
@@ -429,7 +651,6 @@ function closeSidebar() {
     if (sidebar) sidebar.classList.remove("open");
 }
 
-// Toggle do menu hambúrguer
 const menuToggleBtn = document.getElementById("menuToggle");
 const sidebarOverlayEl = document.getElementById("sidebarOverlay");
 
@@ -452,7 +673,6 @@ if (sidebarOverlayEl) {
     sidebarOverlayEl.addEventListener("click", closeSidebar);
 }
 
-// Fecha sidebar ao clicar em uma categoria (mobile)
 document.addEventListener("click", function(e) {
     const catBtn = e.target.closest(".cat-btn");
     if (catBtn && window.innerWidth <= 1023) {
@@ -460,7 +680,7 @@ document.addEventListener("click", function(e) {
     }
 });
 
-// Sincroniza as duas buscas (mobile e desktop)
+// Sincroniza buscas
 const searchInputMobile = document.getElementById("searchInput");
 const searchInputDesktop = document.getElementById("searchInputDesktop");
 
@@ -501,9 +721,6 @@ function openModal(id) {
         modal.classList.add("open");
         modal.style.display = "flex";
         document.body.style.overflow = "hidden";
-        console.log("✅ Modal aberto:", id);
-    } else {
-        console.log("❌ Modal não encontrado:", id);
     }
 }
 
@@ -538,28 +755,18 @@ if (loginHint) {
         : "Modo demonstração: informe qualquer e-mail e a senha demo (admin123).";
 }
 
-// ============================================================
 // ===== LOGOUT =====
-// ============================================================
-
 const logoutBtn = document.getElementById("logoutBtn");
 if (logoutBtn) {
     logoutBtn.addEventListener("click", async function() {
         await dataLayer.logout();
-        
-        // Remove o admin
         isAdmin = false;
         document.body.classList.remove('admin-mode');
-        
-        // Esconde o badge
         const badge = document.getElementById('adminBadge');
         if (badge) badge.style.display = 'none';
-        
-        // Remove o ?adm da URL
         let url = window.location.href;
         url = url.replace('adm', '').replace('?adm', '').replace('&adm', '');
         window.history.replaceState({}, '', url);
-        
         toast('Sessão encerrada.', 'ok');
     });
 }
@@ -587,7 +794,6 @@ if (openPanelBtn) {
 }
 
 function abrirPainelAdmin() {
-    console.log("🔓 Abrindo painel admin...");
     renderCategorySelect();
     renderAdminList();
     openModal("panelModal");
@@ -676,6 +882,9 @@ function bindImageInput() {
     }
 }
 bindImageInput();
+
+// ===== INICIAR CARRINHO =====
+loadCart();
 
 console.log("🚀 Site carregado com sucesso!");
 console.log("📱 Modo admin:", isAdmin ? "ATIVADO" : "DESATIVADO");
