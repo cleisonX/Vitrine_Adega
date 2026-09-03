@@ -1591,3 +1591,23 @@ body.admin-mode .card-del {
 .footer-credits a:hover {
     color: var(--orange-bright);
 }
+
+/* Remove o fundo cinza ao tocar em botões no celular */
+button,
+.btn,
+.cat-btn,
+.cart-item-actions button,
+.btn-add-cart,
+.cart-float,
+.social-link,
+.menu-toggle,
+.sidebar-close,
+.modal-close,
+.zoom-close,
+a,
+input,
+select,
+textarea {
+    -webkit-tap-highlight-color: transparent !important;
+    -webkit-touch-callout: none !important;
+}
