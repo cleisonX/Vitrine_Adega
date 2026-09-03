@@ -164,7 +164,7 @@ textarea {
     top: 6px;
 }
 
-/* ===== TEXTO ANIMADO NO HEADER (só desktop) ===== */
+/* Texto animado no header */
 .header-text {
     flex: 1;
     overflow: hidden;
@@ -182,8 +182,13 @@ textarea {
 }
 
 @keyframes marquee {
-    0% { transform: translateX(100%); }
-    100% { transform: translateX(-100%); }
+    0% {
+        transform: translateX(100%);
+    }
+
+    100% {
+        transform: translateX(-100%);
+    }
 }
 
 .desktop-only {
@@ -203,6 +208,7 @@ textarea {
     flex: none;
 }
 
+/* Botões */
 .btn {
     border: none;
     border-radius: 10px;
@@ -384,8 +390,7 @@ body.admin-mode #adminBadge {
     cursor: pointer;
 }
 
-#categoryList,
-#brandList {
+#categoryList {
     list-style: none;
     display: flex;
     flex-direction: column;
@@ -424,6 +429,35 @@ body.admin-mode #adminBadge {
     font-size: 11px;
     opacity: .65;
     font-weight: 400;
+}
+
+/* ===== SUBMENU DE MARCAS ===== */
+.brand-sublist {
+    list-style: none;
+    margin: 2px 0 6px 12px;
+    padding-left: 8px;
+    border-left: 2px solid rgba(255, 138, 30, .3);
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.sub-btn {
+    padding: 5px 8px;
+    font-size: 11px;
+    color: var(--muted);
+    opacity: .8;
+}
+
+.sub-btn:hover {
+    opacity: 1;
+    color: var(--white);
+}
+
+.sub-btn.active {
+    color: var(--orange);
+    background: rgba(255, 138, 30, .1);
+    border-color: rgba(255, 138, 30, .3);
 }
 
 .sidebar-footer {
@@ -574,7 +608,6 @@ body.admin-mode .card-del {
     display: flex;
 }
 
-/* ===== BOTÃO EDITAR (admin) ===== */
 .card-edit {
     position: absolute;
     top: 8px;
@@ -597,7 +630,6 @@ body.admin-mode .card-edit {
     display: flex;
 }
 
-/* ===== BADGE DE PROMOÇÃO ===== */
 .promo-badge {
     position: absolute;
     top: 8px;
@@ -615,11 +647,17 @@ body.admin-mode .card-edit {
 }
 
 @keyframes pulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.08); }
+
+    0%,
+    100% {
+        transform: scale(1);
+    }
+
+    50% {
+        transform: scale(1.08);
+    }
 }
 
-/* ===== MARCA NO CARD ===== */
 .card-brand {
     align-self: flex-start;
     font-size: 10px;
@@ -682,14 +720,6 @@ body.admin-mode .card-edit {
     letter-spacing: .5px;
 }
 
-.card-price small {
-    font-family: var(--font-body);
-    font-size: 11px;
-    color: var(--muted);
-    font-weight: 400;
-}
-
-/* ===== BOTÃO ADICIONAR AO CARRINHO ===== */
 .btn-add-cart {
     font-size: 12px;
     padding: 8px 10px;
@@ -721,7 +751,7 @@ body.admin-mode .card-edit {
     transform: scale(0.96);
 }
 
-/* ===== CARRINHO DE COMPRAS ===== */
+/* ===== CARRINHO ===== */
 .cart-float {
     position: fixed;
     bottom: 24px;
@@ -872,30 +902,6 @@ body.admin-mode .card-edit {
     outline: none;
 }
 
-#addressField,
-#changeField {
-    transition: display .2s ease;
-}
-
-#changeField .hint {
-    margin-top: 4px;
-    margin-bottom: 0;
-    font-size: 11px;
-    color: var(--muted);
-    opacity: .7;
-}
-
-.cart-modal .field {
-    margin-bottom: 12px;
-}
-
-.cart-modal .field label {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--muted);
-    margin-bottom: 5px;
-}
-
 #cartCheckout {
     width: 100%;
     justify-content: center;
@@ -910,46 +916,7 @@ body.admin-mode .card-edit {
     font-size: 12px;
 }
 
-.empty-state {
-    text-align: center;
-    padding: 70px 20px;
-    color: var(--muted);
-}
-
-.empty-state .emoji {
-    font-size: 40px;
-    margin-bottom: 10px;
-}
-
-.empty-state h3 {
-    font-family: var(--font-display);
-    color: var(--orange);
-    font-size: 20px;
-    margin-bottom: 6px;
-}
-
-.demo-banner {
-    margin: 14px 20px 0;
-    padding: 12px 16px;
-    border-radius: 10px;
-    background: rgba(255, 138, 30, .1);
-    border: 1px solid rgba(255, 138, 30, .35);
-    color: var(--orange);
-    font-size: 12.5px;
-    line-height: 1.5;
-    display: flex;
-    gap: 10px;
-    align-items: flex-start;
-    max-width: 1360px;
-    margin-left: auto;
-    margin-right: auto;
-}
-
-.demo-banner b {
-    color: var(--white);
-}
-
-/* ===================== MODALS ===================== */
+/* ===== MODALS ===== */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -988,6 +955,7 @@ body.admin-mode .card-edit {
         transform: scale(.94);
         opacity: 0;
     }
+
     to {
         transform: scale(1);
         opacity: 1;
@@ -1174,7 +1142,6 @@ body.admin-mode .card-edit {
     color: var(--muted);
 }
 
-/* ===== BOTÃO EDITAR NA LISTA ADMIN ===== */
 .btn-edit {
     background: var(--orange);
     color: #000;
@@ -1194,7 +1161,7 @@ body.admin-mode .card-edit {
     background: var(--orange-bright);
 }
 
-/* Zoom modal */
+/* Zoom */
 .zoom-overlay {
     position: fixed;
     inset: 0;
@@ -1267,14 +1234,14 @@ body.admin-mode .card-edit {
         opacity: 0;
         transform: translateY(10px);
     }
+
     to {
         opacity: 1;
         transform: translateY(0);
     }
 }
 
-/* ===================== RESPONSIVIDADE ===================== */
-
+/* Responsividade */
 @media (max-width:1023px) {
     .menu-toggle {
         display: flex;
@@ -1338,7 +1305,7 @@ body.admin-mode .card-edit {
     body.sidebar-open .sidebar-overlay {
         display: block;
     }
-    
+
     .mobile-search {
         display: block;
         flex: 1;
@@ -1346,50 +1313,50 @@ body.admin-mode .card-edit {
         max-width: none;
         margin: 0 10px;
     }
-    
+
     .desktop-search {
         display: none;
     }
-    
+
     .topbar {
         padding: 14px 16px;
         min-height: 72px;
     }
-    
+
     .menu-toggle {
         width: 38px;
         height: 38px;
         flex: none;
     }
-    
+
     .mobile-search input {
         font-size: 13px;
         padding: 9px 12px 9px 32px;
     }
-    
+
     .mobile-search svg {
         left: 10px;
         width: 13px;
         height: 13px;
     }
-    
+
     .header-actions {
         gap: 6px;
     }
-    
+
     .header-actions .btn {
         padding: 8px 10px;
         font-size: 11px;
     }
-    
+
     .hero-strip {
         display: none;
     }
-    
+
     .content {
         padding: 12px 16px 40px;
     }
-    
+
     .content-header h2 {
         font-size: 18px;
     }
@@ -1401,7 +1368,7 @@ body.admin-mode .card-edit {
         bottom: 20px;
         right: 20px;
     }
-    
+
     .cart-float-badge {
         font-size: 10px;
         min-width: 20px;
@@ -1418,15 +1385,6 @@ body.admin-mode .card-edit {
     .sidebar-logo {
         width: 100%;
         max-width: 120px;
-        height: auto;
-        border-radius: 0;
-        object-fit: contain;
-        background: transparent;
-        padding: 0;
-        border: none;
-        box-shadow: none;
-        display: block;
-        margin: 0 auto;
     }
 
     .sidebar-logo-wrap {
@@ -1446,7 +1404,7 @@ body.admin-mode .card-edit {
         bottom: 16px;
         right: 16px;
     }
-    
+
     .cart-float-badge {
         font-size: 10px;
         min-width: 18px;
@@ -1466,7 +1424,7 @@ body.admin-mode .card-edit {
         flex-direction: column;
         align-items: center;
     }
-    
+
     .social-link {
         padding: 8px 12px;
         font-size: 11px;
@@ -1474,7 +1432,7 @@ body.admin-mode .card-edit {
         max-width: 260px;
         justify-content: center;
     }
-    
+
     .social-link svg {
         width: 16px;
         height: 16px;
@@ -1500,15 +1458,6 @@ body.admin-mode .card-edit {
     .sidebar-logo {
         width: 100%;
         max-width: 120px;
-        height: auto;
-        border-radius: 0;
-        object-fit: contain;
-        background: transparent;
-        padding: 0;
-        border: none;
-        box-shadow: none;
-        display: block;
-        margin: 0 auto;
     }
 
     .sidebar-logo-wrap {
@@ -1525,7 +1474,7 @@ body.admin-mode .card-edit {
         width: 40px;
         height: 40px;
     }
-    
+
     .cart-item-name {
         font-size: 13px;
     }
@@ -1551,15 +1500,6 @@ body.admin-mode .card-edit {
     .sidebar-logo {
         width: 100%;
         max-width: 70px;
-        height: auto;
-        border-radius: 0;
-        object-fit: contain;
-        background: transparent;
-        padding: 0;
-        border: none;
-        box-shadow: none;
-        display: block;
-        margin: 0 auto;
     }
 
     .btn-add-cart {
@@ -1663,7 +1603,7 @@ body.admin-mode .card-edit {
     color: var(--orange-bright);
 }
 
-/* Remove o fundo cinza ao tocar em botões no celular */
+/* Remove fundo cinza no mobile */
 button,
 .btn,
 .cat-btn,
