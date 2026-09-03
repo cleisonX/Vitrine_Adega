@@ -367,7 +367,7 @@ body.admin-mode #adminBadge {
     font-size: 15px;
     color: var(--orange);
     letter-spacing: .5px;
-    margin-bottom: 16px;
+    margin-bottom: 12px;
     text-align: center;
     display: flex;
     align-items: center;
@@ -384,7 +384,8 @@ body.admin-mode #adminBadge {
     cursor: pointer;
 }
 
-#categoryList {
+#categoryList,
+#brandList {
     list-style: none;
     display: flex;
     flex-direction: column;
@@ -573,6 +574,64 @@ body.admin-mode .card-del {
     display: flex;
 }
 
+/* ===== BOTÃO EDITAR (admin) ===== */
+.card-edit {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 2;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255, 138, 30, .9);
+    color: #000;
+    border: none;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+body.admin-mode .card-edit {
+    display: flex;
+}
+
+/* ===== BADGE DE PROMOÇÃO ===== */
+.promo-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    z-index: 3;
+    background: linear-gradient(135deg, #e6432f, #ff6a00);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 999px;
+    letter-spacing: .5px;
+    box-shadow: 0 2px 10px rgba(230, 67, 47, .5);
+    animation: pulse 1.5s ease infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.08); }
+}
+
+/* ===== MARCA NO CARD ===== */
+.card-brand {
+    align-self: flex-start;
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--muted);
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid var(--card-border);
+    padding: 2px 8px;
+    border-radius: 999px;
+}
+
 .card-body {
     padding: 14px;
     display: flex;
@@ -630,10 +689,7 @@ body.admin-mode .card-del {
     font-weight: 400;
 }
 
-/* ============================================================
-   ===== BOTÃO ADICIONAR AO CARRINHO =====
-   ============================================================ */
-
+/* ===== BOTÃO ADICIONAR AO CARRINHO ===== */
 .btn-add-cart {
     font-size: 12px;
     padding: 8px 10px;
@@ -665,10 +721,7 @@ body.admin-mode .card-del {
     transform: scale(0.96);
 }
 
-/* ============================================================
-   ===== CARRINHO DE COMPRAS =====
-   ============================================================ */
-
+/* ===== CARRINHO DE COMPRAS ===== */
 .cart-float {
     position: fixed;
     bottom: 24px;
@@ -793,14 +846,13 @@ body.admin-mode .card-del {
     text-align: center;
 }
 
-/* ============================================================
-   ===== CAMPOS DE ENTREGA E PAGAMENTO (NOVO) =====
-   ============================================================ */
-
+/* ===== CAMPOS DE ENTREGA E PAGAMENTO ===== */
 #deliveryType,
 #paymentMethod,
 #deliveryAddress,
-#changeAmount {
+#changeAmount,
+#productBrand,
+#productPromo {
     width: 100%;
     padding: 11px 13px;
     border-radius: 9px;
@@ -813,15 +865,14 @@ body.admin-mode .card-del {
 #deliveryType:focus,
 #paymentMethod:focus,
 #deliveryAddress:focus,
-#changeAmount:focus {
+#changeAmount:focus,
+#productBrand:focus,
+#productPromo:focus {
     border-color: var(--orange);
     outline: none;
 }
 
-#addressField {
-    transition: display .2s ease;
-}
-
+#addressField,
 #changeField {
     transition: display .2s ease;
 }
@@ -1123,6 +1174,26 @@ body.admin-mode .card-del {
     color: var(--muted);
 }
 
+/* ===== BOTÃO EDITAR NA LISTA ADMIN ===== */
+.btn-edit {
+    background: var(--orange);
+    color: #000;
+    border: none;
+    border-radius: 6px;
+    width: 28px;
+    height: 28px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: background .15s ease;
+}
+
+.btn-edit:hover {
+    background: var(--orange-bright);
+}
+
 /* Zoom modal */
 .zoom-overlay {
     position: fixed;
@@ -1202,7 +1273,7 @@ body.admin-mode .card-del {
     }
 }
 
-/* Responsividade */
+/* ===================== RESPONSIVIDADE ===================== */
 
 @media (max-width:1023px) {
     .menu-toggle {
