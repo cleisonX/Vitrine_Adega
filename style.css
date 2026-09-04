@@ -43,7 +43,6 @@ body {
     overflow-x: hidden;
 }
 
-/* Logo Marca d`Água */
 body::after {
     content: '';
     position: fixed;
@@ -110,7 +109,7 @@ textarea {
     outline-offset: 2px;
 }
 
-/* ===================== TOPBAR ===================== */
+/* TOPBAR */
 .topbar {
     position: sticky;
     top: 0;
@@ -164,7 +163,6 @@ textarea {
     top: 6px;
 }
 
-/* Texto animado no header */
 .header-text {
     flex: 1;
     overflow: hidden;
@@ -208,7 +206,6 @@ textarea {
     flex: none;
 }
 
-/* Botões */
 .btn {
     border: none;
     border-radius: 10px;
@@ -269,7 +266,7 @@ body.admin-mode #adminBadge {
     display: flex;
 }
 
-/* ===================== HERO STRIP ===================== */
+/* HERO STRIP */
 .hero-strip {
     padding: 16px 20px 4px;
     display: flex;
@@ -319,24 +316,25 @@ body.admin-mode #adminBadge {
     display: block;
 }
 
-/* ===================== LAYOUT ===================== */
+/* LAYOUT */
 .layout {
     display: flex;
-    align-items: flex-start;
+    align-items: stretch;
     max-width: none;
     margin: 0;
     position: relative;
 }
 
-/* ===== SIDEBAR ===== */
+/* SIDEBAR */
 .sidebar {
     width: 220px;
     flex: none;
     position: sticky;
     top: 0;
-    height: 100vh;
-    max-height: 100vh;
-    overflow-y: auto;
+    height: auto;
+    min-height: calc(100vh - 80px);
+    max-height: none;
+    overflow-y: visible;
     margin: -65px 0 0 0;
     padding: 20px 14px 30px;
     background: var(--card);
@@ -381,15 +379,6 @@ body.admin-mode #adminBadge {
     gap: 8px;
 }
 
-.sidebar-close {
-    display: none;
-    background: none;
-    border: none;
-    color: var(--muted);
-    font-size: 24px;
-    cursor: pointer;
-}
-
 #categoryList {
     list-style: none;
     display: flex;
@@ -431,7 +420,7 @@ body.admin-mode #adminBadge {
     font-weight: 400;
 }
 
-/* ===== SUBMENU DE MARCAS ===== */
+/* SUBMENU DE MARCAS */
 .brand-sublist {
     list-style: none;
     margin: 2px 0 6px 12px;
@@ -487,7 +476,7 @@ body.admin-mode #adminBadge {
     z-index: 9998;
 }
 
-/* ===================== CONTENT / GRID ===================== */
+/* CONTENT */
 .content {
     flex: 1;
     min-width: 0;
@@ -612,7 +601,7 @@ body.admin-mode .card-del {
     position: absolute;
     top: 8px;
     left: 8px;
-    z-index: 2;
+    z-index: 4;
     width: 30px;
     height: 30px;
     border-radius: 50%;
@@ -633,7 +622,7 @@ body.admin-mode .card-edit {
 .promo-badge {
     position: absolute;
     top: 8px;
-    left: 8px;
+    right: 45px;
     z-index: 3;
     background: linear-gradient(135deg, #e6432f, #ff6a00);
     color: #fff;
@@ -658,18 +647,6 @@ body.admin-mode .card-edit {
     }
 }
 
-.card-brand {
-    align-self: flex-start;
-    font-size: 10px;
-    text-transform: uppercase;
-    letter-spacing: .5px;
-    color: var(--muted);
-    background: rgba(255, 255, 255, .05);
-    border: 1px solid var(--card-border);
-    padding: 2px 8px;
-    border-radius: 999px;
-}
-
 .card-body {
     padding: 14px;
     display: flex;
@@ -678,8 +655,14 @@ body.admin-mode .card-edit {
     flex: 1;
 }
 
+.card-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    align-items: center;
+}
+
 .card-category {
-    align-self: flex-start;
     font-size: 10.5px;
     text-transform: uppercase;
     letter-spacing: .6px;
@@ -689,6 +672,19 @@ body.admin-mode .card-edit {
     padding: 3px 9px;
     border-radius: 999px;
     font-weight: 600;
+    display: inline-block;
+}
+
+.card-brand {
+    font-size: 10px;
+    text-transform: uppercase;
+    letter-spacing: .5px;
+    color: var(--muted);
+    background: rgba(255, 255, 255, .05);
+    border: 1px solid var(--card-border);
+    padding: 2px 8px;
+    border-radius: 999px;
+    display: inline-block;
 }
 
 .card-name {
@@ -751,7 +747,7 @@ body.admin-mode .card-edit {
     transform: scale(0.96);
 }
 
-/* ===== CARRINHO ===== */
+/* CARRINHO */
 .cart-float {
     position: fixed;
     bottom: 24px;
@@ -876,7 +872,7 @@ body.admin-mode .card-edit {
     text-align: center;
 }
 
-/* ===== CAMPOS DE ENTREGA E PAGAMENTO ===== */
+/* CAMPOS */
 #deliveryType,
 #paymentMethod,
 #deliveryAddress,
@@ -916,7 +912,7 @@ body.admin-mode .card-edit {
     font-size: 12px;
 }
 
-/* ===== MODALS ===== */
+/* MODALS */
 .modal-overlay {
     position: fixed;
     inset: 0;
@@ -1161,7 +1157,7 @@ body.admin-mode .card-edit {
     background: var(--orange-bright);
 }
 
-/* Zoom */
+/* ZOOM */
 .zoom-overlay {
     position: fixed;
     inset: 0;
@@ -1197,7 +1193,7 @@ body.admin-mode .card-edit {
     z-index: 71;
 }
 
-/* Toast */
+/* TOAST */
 #toastBox {
     position: fixed;
     bottom: 18px;
@@ -1241,7 +1237,7 @@ body.admin-mode .card-edit {
     }
 }
 
-/* Responsividade */
+/* RESPONSIVIDADE */
 @media (max-width:1023px) {
     .menu-toggle {
         display: flex;
@@ -1282,15 +1278,6 @@ body.admin-mode .card-edit {
     .sidebar-logo {
         width: 100%;
         max-width: 120px;
-        height: auto;
-        border-radius: 0;
-        object-fit: contain;
-        background: transparent;
-        padding: 0;
-        border: none;
-        box-shadow: none;
-        display: block;
-        margin: 0 auto;
     }
 
     .sidebar h2 {
@@ -1446,15 +1433,6 @@ body.admin-mode .card-edit {
         font-size: 10px;
     }
 
-    .demo-banner {
-        font-size: 11px;
-        padding: 10px 12px;
-        margin: 10px 12px 0;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-    }
-
     .sidebar-logo {
         width: 100%;
         max-width: 120px;
@@ -1510,7 +1488,7 @@ body.admin-mode .card-edit {
     }
 }
 
-/* Footer */
+/* FOOTER */
 .site-footer {
     text-align: center;
     padding: 30px 20px 40px;
